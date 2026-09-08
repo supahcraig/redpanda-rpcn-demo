@@ -1,0 +1,18 @@
+input:
+  generate:
+    interval: 500ms
+    mapping: |
+      let machines = ["stamping-press", "cnc-mill", "conveyor-belt", "welder-robot", "injection-molder"]
+      root.sensor_id = "sensor-%d".format(random_int(min: 1, max: 20))
+      root.machine = $machines.index(random_int(min: 0, max: 4))
+      root.temperature_c = random_int(min: 40, max: 115)
+      root.vibration_mm_s = random_int(min: 0, max: 30)
+      root.timestamp = now()
+
+pipeline:
+  processors: []
+
+output:
+  kafka_franz:
+    seed_brokers: ["redpanda-0:9092"]
+    topic: sensors.raw
