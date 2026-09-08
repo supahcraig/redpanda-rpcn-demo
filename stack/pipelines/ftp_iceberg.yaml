@@ -1,0 +1,40 @@
+input:
+  sftp:
+    address: sftp:22
+    credentials:
+      username: demo
+      password: demopass
+      host_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINUcMYOSajHHmsok8eYw1e6hqgjoVg4mjDYN9LciaEdP"
+    paths: ["/incoming/*.json"]
+    watcher:
+      enabled: true
+      minimum_age: 2s
+      poll_interval: 2s
+      cache: sftp_seen
+
+cache_resources:
+  - label: sftp_seen
+    memory: {}
+
+pipeline:
+  processors:
+    - mapping: 'root = content().parse_json()'
+
+output:
+  iceberg:
+    catalog:
+      url: "https://glue.us-east-2.amazonaws.com/iceberg"
+      warehouse: "861276079005"
+      auth:
+        aws_sigv4:
+          region: us-east-2
+          service: glue
+    namespace: "rp_demo_db"
+    table: sensor_files
+    schema_evolution:
+      enabled: true
+      table_location: "s3://rp-demo-iceberg-861276079005/sensor_files/"
+    storage:
+      aws_s3:
+        bucket: "rp-demo-iceberg-861276079005"
+        region: us-east-2

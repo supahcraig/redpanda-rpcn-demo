@@ -148,3 +148,23 @@ services:
     depends_on:
       - redpanda-0
       - postgres
+
+  sftp:
+    image: atmoz/sftp:latest
+    container_name: sftp
+    command: demo:demopass:1001
+    volumes:
+      - ./sftp-data/incoming:/home/demo/incoming
+    networks:
+      - demo_net
+
+  connect-ftp-iceberg:
+    image: docker.redpanda.com/redpandadata/connect:latest
+    container_name: connect-ftp-iceberg
+    volumes:
+      - ./pipelines/ftp_iceberg.yaml:/connect.yaml
+    command: ["run"]
+    networks:
+      - demo_net
+    depends_on:
+      - sftp
