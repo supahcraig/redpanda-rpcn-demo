@@ -4,7 +4,7 @@ input:
     credentials:
       username: demo
       password: demopass
-      host_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINUcMYOSajHHmsok8eYw1e6hqgjoVg4mjDYN9LciaEdP"
+      host_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO3Tn+kBSJawonkJiTzxjxk42/L0W1x2ALZsbsk8vJZW"
     paths: ["/incoming/*.json"]
     watcher:
       enabled: true
