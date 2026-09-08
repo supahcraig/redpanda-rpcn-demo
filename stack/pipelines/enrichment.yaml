@@ -1,0 +1,33 @@
+input:
+  generate:
+    interval: 1s
+    mapping: |
+      let first_names = ["bill","billy","will","bob","rob","jim","jimmy","mike","tony","beth","liz","dave","ken","kathy","susan","mark"]
+      let last_names = ["Smith","Johnson","Garcia","Brown","Miller","Davis"]
+      let bands = ["Rush","Metallica","Fleetwood Mac","Queen","Radiohead"]
+      root.first_name = $first_names.index(random_int() % $first_names.length())
+      root.last_name = $last_names.index(random_int() % $last_names.length())
+      root.address = random_int(min: 100, max: 9999).string() + " Main St"
+      root.favorite_band = $bands.index(random_int() % $bands.length())
+
+pipeline:
+  processors:
+    - branch:
+        request_map: 'root = this.first_name.lowercase()'
+        processors:
+          - sql_select:
+              driver: postgres
+              dsn: postgres://demo:demo@postgres:5432/demo?sslmode=disable
+              table: name_lookup
+              columns: ["formal_name"]
+              where: nickname = ?
+              args_mapping: 'root = [ content().string() ]'
+        result_map: |
+          root.formal_first_name = if this.length() > 0 { this.index(0).formal_name } else { null }
+          root.match_status = if this.length() > 0 { "success" } else { "no_match" }
+          root.match_confidence = if this.length() > 0 { 1.0 } else { 0.0 }
+
+output:
+  kafka_franz:
+    seed_brokers: ["redpanda-0:9092"]
+    topic: customers.enriched

@@ -136,3 +136,15 @@ services:
     depends_on:
       - redpanda-0
       - connect-mq
+
+  connect-enrichment:
+    image: docker.redpanda.com/redpandadata/connect:latest
+    container_name: connect-enrichment
+    volumes:
+      - ./pipelines/enrichment.yaml:/connect.yaml
+    command: ["run"]
+    networks:
+      - demo_net
+    depends_on:
+      - redpanda-0
+      - postgres
