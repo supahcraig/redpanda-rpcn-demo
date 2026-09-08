@@ -10,12 +10,12 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_instance" "demo" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type                = var.instance_type
-  subnet_id                    = var.subnet_id
-  key_name                     = var.key_pair_name
-  vpc_security_group_ids       = [aws_security_group.demo.id]
-  iam_instance_profile         = aws_iam_instance_profile.demo.name
-  associate_public_ip_address  = true
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_id
+  key_name                    = var.key_pair_name
+  vpc_security_group_ids      = [aws_security_group.demo.id]
+  iam_instance_profile        = aws_iam_instance_profile.demo.name
+  associate_public_ip_address = true
 
   metadata_options {
     http_endpoint               = "enabled"
