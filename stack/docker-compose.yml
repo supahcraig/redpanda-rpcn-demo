@@ -124,3 +124,15 @@ services:
       - demo_net
     depends_on:
       - redpanda-0
+
+  connect-alerting:
+    image: docker.redpanda.com/redpandadata/connect:latest
+    container_name: connect-alerting
+    volumes:
+      - ./pipelines/alerting.yaml:/connect.yaml
+    command: ["run"]
+    networks:
+      - demo_net
+    depends_on:
+      - redpanda-0
+      - connect-mq

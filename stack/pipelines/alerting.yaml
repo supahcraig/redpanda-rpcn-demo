@@ -1,0 +1,22 @@
+input:
+  kafka_franz:
+    seed_brokers: ["redpanda-0:9092"]
+    topics: ["sensors.raw"]
+    consumer_group: alerting-pipeline
+
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        root.alert = this.temperature_c > 110 || this.vibration_mm_s > 29
+
+output:
+  switch:
+    cases:
+      - check: 'this.alert == true'
+        output:
+          kafka_franz:
+            seed_brokers: ["redpanda-0:9092"]
+            topic: alerts
+      - output:
+          drop: {}
