@@ -30,6 +30,7 @@ services:
     ports:
       - "19092:19092"
       - "9644:9644"
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy:.*true'"]
       interval: 5s
@@ -57,6 +58,7 @@ services:
       - demo_net
     depends_on:
       - redpanda-0
+    restart: unless-stopped
 
   redpanda-2:
     image: docker.redpanda.com/redpandadata/redpanda:v26.2.2
@@ -79,6 +81,7 @@ services:
       - demo_net
     depends_on:
       - redpanda-0
+    restart: unless-stopped
 
   console:
     image: docker.redpanda.com/redpandadata/console:latest
@@ -101,6 +104,7 @@ services:
       - redpanda-0
       - redpanda-1
       - redpanda-2
+    restart: unless-stopped
 
   postgres:
     image: postgres:16-alpine
@@ -113,41 +117,45 @@ services:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - demo_net
+    restart: unless-stopped
 
   connect-mq:
     image: docker.redpanda.com/redpandadata/connect:latest
     container_name: connect-mq
     volumes:
-      - ./pipelines/mq.yaml:/connect.yaml
+      - ./pipelines/mq.yaml:/connect.yaml:ro
     command: ["run"]
     networks:
       - demo_net
     depends_on:
       - redpanda-0
+    restart: unless-stopped
 
   connect-alerting:
     image: docker.redpanda.com/redpandadata/connect:latest
     container_name: connect-alerting
     volumes:
-      - ./pipelines/alerting.yaml:/connect.yaml
+      - ./pipelines/alerting.yaml:/connect.yaml:ro
     command: ["run"]
     networks:
       - demo_net
     depends_on:
       - redpanda-0
       - connect-mq
+    restart: unless-stopped
 
   connect-enrichment:
     image: docker.redpanda.com/redpandadata/connect:latest
     container_name: connect-enrichment
     volumes:
-      - ./pipelines/enrichment.yaml:/connect.yaml
+      - ./pipelines/enrichment.yaml:/connect.yaml:ro
     command: ["run"]
     networks:
       - demo_net
     depends_on:
       - redpanda-0
       - postgres
+    restart: unless-stopped
 
   sftp:
     image: atmoz/sftp:latest
@@ -157,12 +165,13 @@ services:
       - ./sftp-data/incoming:/home/demo/incoming
     networks:
       - demo_net
+    restart: unless-stopped
 
   connect-ftp-iceberg:
     image: docker.redpanda.com/redpandadata/connect:latest
     container_name: connect-ftp-iceberg
     volumes:
-      - ./pipelines/ftp_iceberg.yaml:/connect.yaml
+      - ./pipelines/ftp_iceberg.yaml:/connect.yaml:ro
       # Enterprise license required by the `iceberg` output. See stack/README.md
       # for how to obtain/place this file and the correct ownership/permissions.
       - /home/ubuntu/secrets/redpanda.license:/etc/redpanda/redpanda.license:ro
@@ -171,3 +180,4 @@ services:
       - demo_net
     depends_on:
       - sftp
+    restart: unless-stopped
