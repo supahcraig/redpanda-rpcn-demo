@@ -163,6 +163,7 @@ services:
     container_name: connect-ftp-iceberg
     volumes:
       - ./pipelines/ftp_iceberg.yaml:/connect.yaml
+      - /home/ubuntu/secrets/redpanda.license:/etc/redpanda/redpanda.license:ro
     command: ["run"]
     networks:
       - demo_net
