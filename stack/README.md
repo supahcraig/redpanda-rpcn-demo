@@ -3,6 +3,21 @@
 Operational gotchas for this Docker Compose stack that aren't obvious from
 the YAML alone. Read this before redeploying from a clean checkout.
 
+## `pipelines/ftp_iceberg.yaml` bakes in values from a specific Terraform apply
+
+The AWS account ID, S3 bucket name, Glue database, and region in
+`pipelines/ftp_iceberg.yaml` (`catalog.warehouse`, `storage.aws_s3.bucket`,
+`namespace`, and the `us-east-2` region strings) are not generic — they were
+substituted in from this particular Terraform apply's outputs and are only
+valid for the AWS account and resources that apply created. They will not
+work as-is in a different AWS account, or after a full `terraform destroy` +
+`terraform apply` that creates a new bucket/database in the same account.
+
+If you re-provision the infrastructure, re-derive these values by re-running
+`terraform output` and re-doing the `sed` substitution described in the
+plan's Task 8, Step 4 (`docs/superpowers/plans/2026-09-08-redpanda-rpcn-demo.md`)
+rather than reusing the checked-in file's values.
+
 ## `connect-ftp-iceberg` requires a Redpanda Connect Enterprise license
 
 The `iceberg` output used by `pipelines/ftp_iceberg.yaml` is an
