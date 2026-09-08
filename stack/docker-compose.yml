@@ -163,6 +163,8 @@ services:
     container_name: connect-ftp-iceberg
     volumes:
       - ./pipelines/ftp_iceberg.yaml:/connect.yaml
+      # Enterprise license required by the `iceberg` output. See stack/README.md
+      # for how to obtain/place this file and the correct ownership/permissions.
       - /home/ubuntu/secrets/redpanda.license:/etc/redpanda/redpanda.license:ro
     command: ["run"]
     networks:
