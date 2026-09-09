@@ -121,6 +121,17 @@ services:
       - demo_net
     restart: unless-stopped
 
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    ports:
+      - "127.0.0.1:8081:8080"
+    networks:
+      - demo_net
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
   connect-mq:
     image: docker.redpanda.com/redpandadata/connect:latest
     container_name: connect-mq
