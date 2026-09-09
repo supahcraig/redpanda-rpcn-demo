@@ -130,3 +130,20 @@ login itself succeeds. This needs to be set once per fresh deploy (it does
 not survive a clean checkout, since git doesn't track permission bits
 beyond the executable flag, and the directory itself is only tracked via a
 `.gitkeep`).
+
+## Why `delete_on_finish: true` matters on the `sftp` input
+
+`pipelines/ftp_iceberg.yaml`'s "already processed" tracking
+(`watcher.cache: sftp_seen`) is an **in-memory** cache
+(`cache_resources: [{label: sftp_seen, memory: {}}]`). It resets to empty
+every time `connect-ftp-iceberg` is recreated (any redeploy that touches
+this service). Without `delete_on_finish: true`, any file still sitting in
+the watched folder at that point gets **silently re-ingested**, appending
+duplicate rows to the Iceberg table — this happened during development and
+produced a wave of unexplained extra rows.
+
+With `delete_on_finish: true`, the input deletes each file from the SFTP
+server immediately after a successful commit, so there's nothing left to
+re-ingest on the next restart. If you ever see row counts that don't match
+what you sent, check `~/stack/sftp-data/incoming/` on the host for leftover
+files first.

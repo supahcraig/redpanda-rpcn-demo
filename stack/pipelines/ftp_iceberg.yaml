@@ -6,6 +6,7 @@ input:
       password: demopass
       host_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO3Tn+kBSJawonkJiTzxjxk42/L0W1x2ALZsbsk8vJZW"
     paths: ["/incoming/*.json"]
+    delete_on_finish: true
     watcher:
       enabled: true
       minimum_age: 2s
@@ -21,6 +22,10 @@ pipeline:
     - mapping: 'root = content().parse_json()'
     - unarchive:
         format: json_array
+    - mapping: |
+        root = this
+        root.source_filename = metadata("sftp_path").filepath_split().index(-1)
+        root.processed_at = now()
 
 output:
   iceberg:
