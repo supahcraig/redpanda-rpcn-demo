@@ -150,6 +150,8 @@ services:
     volumes:
       - ./pipelines/enrichment.yaml:/connect.yaml:ro
     command: ["run"]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     networks:
       - demo_net
     depends_on:

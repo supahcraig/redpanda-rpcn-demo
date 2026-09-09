@@ -26,6 +26,25 @@ pipeline:
           root.formal_first_name = if this.length() > 0 { this.index(0).formal_name } else { null }
           root.match_status = if this.length() > 0 { "success" } else { "no_match" }
           root.match_confidence = if this.length() > 0 { 1.0 } else { 0.0 }
+    - branch:
+        request_map: |
+          root.model = "gpt-5.6-luna"
+          root.max_completion_tokens = 20
+          root.messages = [
+            {"role": "system", "content": "You normalize informal first names or nicknames to their standard formal English first name. Respond with ONLY the formal first name and nothing else. If the input is not a recognized nickname, return it capitalized as-is."},
+            {"role": "user", "content": this.first_name}
+          ]
+        processors:
+          - http:
+              url: "https://api.openai.com/v1/chat/completions"
+              verb: POST
+              headers:
+                Content-Type: "application/json"
+                Authorization: "Bearer ${OPENAI_API_KEY}"
+          - mapping: 'root = content().parse_json()'
+        result_map: |
+          root.llm_formal_first_name = this.choices.index(0).message.content.trim()
+          root.llm_model = "gpt-5.6-luna"
 
 output:
   kafka_franz:
