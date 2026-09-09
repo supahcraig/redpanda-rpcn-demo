@@ -104,3 +104,29 @@ in the `sftp` service). This means:
   Take the third field of the output line (the `ssh-ed25519 AAAA...` key
   itself, without the `sftp` hostname prefix) and paste it into the YAML,
   then redeploy `connect-ftp-iceberg`.
+
+## Sending a batch of demo rows via `scripts/send-batch.sh`
+
+`scripts/send-batch.sh [N]` (run locally, not on the deploy host) generates
+`N` (default 100) synthetic sensor readings as a single JSON array, and
+delivers it over real SFTP to the watched folder — the pipeline's
+`unarchive: {format: json_array}` step splits the array into `N` separate
+Iceberg rows.
+
+It connects to the `atmoz/sftp` container's address on the compose network
+from the EC2 host itself (the service publishes no host port by design), so
+it needs SSH access to the host and `sshpass` installed there (`sudo
+apt-get install -y sshpass` — already done on this deploy).
+
+**The watched folder must be writable by the SFTP container's `demo` user
+(UID 1001), not just the host's `ubuntu` user (UID 1000):**
+
+```bash
+chmod 777 ~/stack/sftp-data/incoming
+```
+
+Without this, uploads fail with `Permission denied` even though the SFTP
+login itself succeeds. This needs to be set once per fresh deploy (it does
+not survive a clean checkout, since git doesn't track permission bits
+beyond the executable flag, and the directory itself is only tracked via a
+`.gitkeep`).

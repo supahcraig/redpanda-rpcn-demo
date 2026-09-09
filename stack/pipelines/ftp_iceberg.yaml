@@ -19,6 +19,8 @@ cache_resources:
 pipeline:
   processors:
     - mapping: 'root = content().parse_json()'
+    - unarchive:
+        format: json_array
 
 output:
   iceberg:
