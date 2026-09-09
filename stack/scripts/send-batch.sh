@@ -6,11 +6,23 @@
 set -euo pipefail
 
 ROWS="${1:-100}"
-EC2_IP="18.119.235.83"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TF_DIR="$SCRIPT_DIR/../../terraform"
 SSH_KEY="/Users/cnelson/pem/cnelson-prodse-01-15-2025.pem"
 SSH_USER="ubuntu"
 SFTP_USER="demo"
 SFTP_PASS="demopass"
+
+# Pulled from live Terraform state rather than hardcoded, so this script
+# has no deployment-specific values baked into it.
+EC2_IP=$(cd "$TF_DIR" && terraform output -raw instance_public_ip)
+ICEBERG_BUCKET=$(cd "$TF_DIR" && terraform output -raw iceberg_bucket)
+GLUE_DATABASE=$(cd "$TF_DIR" && terraform output -raw glue_database)
+
+if [ -z "$EC2_IP" ]; then
+  echo "Could not read instance_public_ip from Terraform state (run this from a checkout with terraform/terraform.tfstate present)." >&2
+  exit 1
+fi
 
 # The atmoz/sftp container publishes no host port (by design — see
 # stack/README.md), so we go from the EC2 host itself to the container's
@@ -81,5 +93,5 @@ echo ""
 echo "Sent $ROWS rows as incoming/$REMOTE_NAME"
 echo "Give the pipeline a few seconds, then query Athena, e.g.:"
 echo "  aws athena start-query-execution --region us-east-2 \\"
-echo "    --query-string \"SELECT count(*) FROM rp_demo_db.sensor_files\" \\"
-echo "    --result-configuration \"OutputLocation=s3://rp-demo-iceberg-861276079005/athena-results/\""
+echo "    --query-string \"SELECT count(*) FROM $GLUE_DATABASE.sensor_files\" \\"
+echo "    --result-configuration \"OutputLocation=s3://$ICEBERG_BUCKET/athena-results/\""

@@ -147,3 +147,18 @@ server immediately after a successful commit, so there's nothing left to
 re-ingest on the next restart. If you ever see row counts that don't match
 what you sent, check `~/stack/sftp-data/incoming/` on the host for leftover
 files first.
+
+## Don't run `DELETE`/`ALTER` queries against `sensor_files` while a batch might still be processing
+
+Iceberg commits use optimistic concurrency (a commit states the branch
+snapshot it expects and is rejected if that's changed underneath it —
+you'll see `CommitFailedException: branch main has changed` in
+`connect-ftp-iceberg`'s logs when this happens; it retries automatically up
+to 3 times). Running an Athena `DELETE` *at the same moment* the pipeline
+is mid-commit on a batch can trigger this retry path, and was observed
+during development to occasionally result in a batch's rows being
+committed twice. This is not a defect in normal operation — sending a
+batch and then querying it, with no concurrent write from elsewhere, is
+exactly 1:1 every time (verified repeatedly). Just avoid deleting rows
+while `send-batch.sh` might still be in flight; wait for it to finish
+first.

@@ -31,17 +31,17 @@ output:
   iceberg:
     catalog:
       url: "https://glue.us-east-2.amazonaws.com/iceberg"
-      warehouse: "861276079005"
+      warehouse: "<AWS_ACCOUNT_ID>"
       auth:
         aws_sigv4:
           region: us-east-2
           service: glue
-    namespace: "rp_demo_db"
+    namespace: "<GLUE_DATABASE>"
     table: sensor_files
     schema_evolution:
       enabled: true
-      table_location: "s3://rp-demo-iceberg-861276079005/sensor_files/"
+      table_location: "s3://<ICEBERG_BUCKET>/sensor_files/"
     storage:
       aws_s3:
-        bucket: "rp-demo-iceberg-861276079005"
+        bucket: "<ICEBERG_BUCKET>"
         region: us-east-2
