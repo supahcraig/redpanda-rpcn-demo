@@ -4,6 +4,7 @@
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars
+terraform/tfplan
 stack/pipelines/ftp_iceberg.yaml
 .env
 stack/.env
