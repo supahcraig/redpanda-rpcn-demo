@@ -19,6 +19,14 @@ resource "aws_security_group" "demo" {
     cidr_blocks = [var.my_ip_cidr]
   }
 
+  ingress {
+    description = "Adminer"
+    from_port   = 8081
+    to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = [var.my_ip_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
