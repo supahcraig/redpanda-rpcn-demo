@@ -55,7 +55,7 @@ dropped inline, with zero extra infrastructure.
 
 **Consumes:** `sensors.raw` → **Produces:** topic `alerts`
 
-### 3. Enrichment pipeline — real-time database lookup
+### 3. Enrichment pipeline — real-time database lookup, with an LLM comparison
 **Config:** `stack/pipelines/enrichment.yaml`
 
 Generates synthetic customer records (a nickname, last name, address,
@@ -65,6 +65,14 @@ processors to look up the nickname's formal first name in a Postgres table
 `formal_first_name`, `match_status`, and `match_confidence` onto the
 original record. This is the streaming alternative to a nightly batch join:
 the lookup happens the instant the record is produced, not hours later.
+
+A second `branch` processor calls an LLM (OpenAI's `gpt-5.6-luna`, via a
+plain `http` processor — no dedicated LLM connector needed) to independently
+resolve the same nickname, appending `llm_formal_first_name` right next to
+the Postgres-derived field. Every record shows both answers side by side —
+a live demonstration of the "database lookup vs. LLM call" trade-off the
+customer is actually weighing. The API key is never stored in this repo;
+it's read from an environment variable at container start.
 
 **Produces:** topic `customers.enriched`
 
